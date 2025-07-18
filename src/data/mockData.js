@@ -1,19 +1,205 @@
-// Mock data for the bus booking demo
+// Real-world data for Indian bus booking system
 
 export const cities = [
-  { id: 1, name: 'Mumbai', state: 'Maharashtra', popular: true },
-  { id: 2, name: 'Delhi', state: 'Delhi', popular: true },
-  { id: 3, name: 'Bangalore', state: 'Karnataka', popular: true },
-  { id: 4, name: 'Chennai', state: 'Tamil Nadu', popular: true },
-  { id: 5, name: 'Pune', state: 'Maharashtra', popular: true },
-  { id: 6, name: 'Hyderabad', state: 'Telangana', popular: true },
-  { id: 7, name: 'Kolkata', state: 'West Bengal', popular: false },
-  { id: 8, name: 'Ahmedabad', state: 'Gujarat', popular: false },
-  { id: 9, name: 'Jaipur', state: 'Rajasthan', popular: false },
-  { id: 10, name: 'Goa', state: 'Goa', popular: true },
-  { id: 11, name: 'Kochi', state: 'Kerala', popular: false },
-  { id: 12, name: 'Indore', state: 'Madhya Pradesh', popular: false },
+  {
+    id: 1,
+    name: 'Mumbai',
+    state: 'Maharashtra',
+    popular: true,
+    coordinates: { lat: 19.0760, lng: 72.8777 },
+    population: 12442373
+  },
+  {
+    id: 2,
+    name: 'Delhi',
+    state: 'Delhi',
+    popular: true,
+    coordinates: { lat: 28.6139, lng: 77.2090 },
+    population: 16787941
+  },
+  {
+    id: 3,
+    name: 'Bangalore',
+    state: 'Karnataka',
+    popular: true,
+    coordinates: { lat: 12.9716, lng: 77.5946 },
+    population: 8443675
+  },
+  {
+    id: 4,
+    name: 'Chennai',
+    state: 'Tamil Nadu',
+    popular: true,
+    coordinates: { lat: 13.0827, lng: 80.2707 },
+    population: 4646732
+  },
+  {
+    id: 5,
+    name: 'Pune',
+    state: 'Maharashtra',
+    popular: true,
+    coordinates: { lat: 18.5204, lng: 73.8567 },
+    population: 3124458
+  },
+  {
+    id: 6,
+    name: 'Hyderabad',
+    state: 'Telangana',
+    popular: true,
+    coordinates: { lat: 17.3850, lng: 78.4867 },
+    population: 6809970
+  },
+  {
+    id: 7,
+    name: 'Kolkata',
+    state: 'West Bengal',
+    popular: false,
+    coordinates: { lat: 22.5726, lng: 88.3639 },
+    population: 4496694
+  },
+  {
+    id: 8,
+    name: 'Ahmedabad',
+    state: 'Gujarat',
+    popular: false,
+    coordinates: { lat: 23.0225, lng: 72.5714 },
+    population: 5570585
+  },
+  {
+    id: 9,
+    name: 'Jaipur',
+    state: 'Rajasthan',
+    popular: false,
+    coordinates: { lat: 26.9124, lng: 75.7873 },
+    population: 3046163
+  },
+  {
+    id: 10,
+    name: 'Goa',
+    state: 'Goa',
+    popular: true,
+    coordinates: { lat: 15.2993, lng: 74.1240 },
+    population: 1457723
+  },
 ];
+
+// Real distance matrix between major Indian cities (in kilometers)
+export const distanceMatrix = {
+  'Mumbai-Delhi': 1154,
+  'Mumbai-Bangalore': 984,
+  'Mumbai-Chennai': 1338,
+  'Mumbai-Pune': 149,
+  'Mumbai-Hyderabad': 711,
+  'Mumbai-Kolkata': 1968,
+  'Mumbai-Ahmedabad': 524,
+  'Mumbai-Jaipur': 1176,
+  'Mumbai-Goa': 464,
+
+  'Delhi-Bangalore': 2077,
+  'Delhi-Chennai': 2180,
+  'Delhi-Pune': 1472,
+  'Delhi-Hyderabad': 1569,
+  'Delhi-Kolkata': 1472,
+  'Delhi-Ahmedabad': 934,
+  'Delhi-Jaipur': 280,
+  'Delhi-Goa': 1874,
+
+  'Bangalore-Chennai': 347,
+  'Bangalore-Pune': 844,
+  'Bangalore-Hyderabad': 569,
+  'Bangalore-Kolkata': 1871,
+  'Bangalore-Ahmedabad': 1506,
+  'Bangalore-Jaipur': 2054,
+  'Bangalore-Goa': 560,
+
+  'Chennai-Pune': 1183,
+  'Chennai-Hyderabad': 629,
+  'Chennai-Kolkata': 1663,
+  'Chennai-Ahmedabad': 1839,
+  'Chennai-Jaipur': 2387,
+  'Chennai-Goa': 697,
+
+  'Pune-Hyderabad': 559,
+  'Pune-Kolkata': 1819,
+  'Pune-Ahmedabad': 665,
+  'Pune-Jaipur': 1213,
+  'Pune-Goa': 464,
+
+  'Hyderabad-Kolkata': 1500,
+  'Hyderabad-Ahmedabad': 1035,
+  'Hyderabad-Jaipur': 1583,
+  'Hyderabad-Goa': 594,
+
+  'Kolkata-Ahmedabad': 2038,
+  'Kolkata-Jaipur': 1586,
+  'Kolkata-Goa': 2161,
+
+  'Ahmedabad-Jaipur': 652,
+  'Ahmedabad-Goa': 1010,
+
+  'Jaipur-Goa': 1658
+};
+
+// Get real distance between two cities
+export const getDistance = (city1, city2) => {
+  const key1 = `${city1}-${city2}`;
+  const key2 = `${city2}-${city1}`;
+  return distanceMatrix[key1] || distanceMatrix[key2] || null;
+};
+
+// Calculate real travel time based on distance and bus type
+export const getTravelTime = (distance, busType) => {
+  const averageSpeed = {
+    'AC Seater': 65,
+    'Non-AC Seater': 55,
+    'AC Sleeper': 70,
+    'Volvo AC': 75,
+    'Mercedes': 80
+  };
+
+  const speed = averageSpeed[busType] || 65;
+  const timeInHours = distance / speed;
+  const hours = Math.floor(timeInHours);
+  const minutes = Math.round((timeInHours - hours) * 60);
+
+  return {
+    hours,
+    minutes,
+    formatted: `${hours}h ${minutes}m`
+  };
+};
+
+// Calculate real pricing based on distance and factors
+export const calculateRealPrice = (distance, busType, departureTime) => {
+  const basePricePerKm = {
+    'AC Seater': 1.2,
+    'Non-AC Seater': 0.8,
+    'AC Sleeper': 1.8,
+    'Volvo AC': 2.2,
+    'Mercedes': 2.8
+  };
+
+  const basePrice = distance * (basePricePerKm[busType] || 1.0);
+
+  // Time-based pricing
+  const hour = parseInt(departureTime.split(':')[0]);
+  let timeMultiplier = 1.0;
+  if (hour >= 6 && hour < 10) timeMultiplier = 1.1; // Morning rush
+  if (hour >= 18 && hour < 22) timeMultiplier = 1.2; // Evening rush
+  if (hour >= 22 || hour < 6) timeMultiplier = 0.9; // Night
+
+  // Weekend/demand multiplier (random for demo)
+  const demandMultiplier = Math.random() > 0.7 ? 1.3 : Math.random() > 0.4 ? 1.1 : 1.0;
+
+  const finalPrice = Math.round(basePrice * timeMultiplier * demandMultiplier);
+  const originalPrice = Math.round(basePrice * 1.2);
+
+  return {
+    finalPrice,
+    originalPrice,
+    discount: Math.max(0, Math.round((originalPrice - finalPrice) / originalPrice * 100))
+  };
+};
 
 export const busOperators = [
   {
@@ -85,31 +271,35 @@ export const amenities = [
   { id: 10, name: 'CCTV', icon: '📹' }
 ];
 
-// Generate mock bus schedules
+// Generate realistic bus schedules with real calculations
 export const generateBusSchedules = (fromCity, toCity, date) => {
+  const distance = getDistance(fromCity, toCity);
+  if (!distance) return [];
+
   const schedules = [];
   const operators = busOperators;
   const types = busTypes;
-  
+
   // Generate 8-12 buses for the route
   const busCount = Math.floor(Math.random() * 5) + 8;
-  
+
   for (let i = 0; i < busCount; i++) {
     const operator = operators[Math.floor(Math.random() * operators.length)];
     const busType = types[Math.floor(Math.random() * types.length)];
-    
-    // Generate departure time (6 AM to 11 PM)
-    const hour = Math.floor(Math.random() * 17) + 6;
+
+    // Generate departure time (5 AM to 11 PM)
+    const hour = Math.floor(Math.random() * 18) + 5;
     const minute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45
     const departureTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    
-    // Calculate arrival time (4-12 hours later)
-    const travelHours = Math.floor(Math.random() * 8) + 4;
-    const arrivalHour = (hour + travelHours) % 24;
-    const arrivalTime = `${arrivalHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    
-    // Generate price (₹500-₹3000)
-    const basePrice = Math.floor(Math.random() * 2500) + 500;
+
+    // Calculate real travel time
+    const travelTime = getTravelTime(distance, busType.name);
+    const arrivalHour = (hour + travelTime.hours) % 24;
+    const arrivalMinute = (minute + travelTime.minutes) % 60;
+    const arrivalTime = `${arrivalHour.toString().padStart(2, '0')}:${arrivalMinute.toString().padStart(2, '0')}`;
+
+    // Calculate real pricing
+    const pricing = calculateRealPrice(distance, busType.name, departureTime);
     
     // Generate seat availability
     const totalSeats = busType.name.includes('Sleeper') ? 40 : 45;
@@ -128,10 +318,11 @@ export const generateBusSchedules = (fromCity, toCity, date) => {
       busNumber: `${operator.name.split(' ')[0].toUpperCase()}-${Math.floor(Math.random() * 9000) + 1000}`,
       departureTime,
       arrivalTime,
-      duration: `${travelHours}h ${Math.floor(Math.random() * 60)}m`,
-      price: basePrice,
-      originalPrice: Math.floor(basePrice * 1.2),
-      discount: Math.floor(Math.random() * 20) + 5,
+      duration: travelTime.formatted,
+      distance,
+      price: pricing.finalPrice,
+      originalPrice: pricing.originalPrice,
+      discount: pricing.discount,
       totalSeats,
       availableSeats,
       bookedSeats,

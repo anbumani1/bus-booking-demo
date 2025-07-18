@@ -9,7 +9,8 @@ import {
   SignalIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { generateBusSchedules } from '../data/mockData';
+import { generateBusSchedules, getDistance } from '../data/mockData';
+import EnhancedMap from '../components/Maps/EnhancedMap';
 
 const BusTracking = () => {
   const { busId } = useParams();
@@ -17,13 +18,17 @@ const BusTracking = () => {
   const [bus, setBus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [distance, setDistance] = useState(0);
 
   useEffect(() => {
-    // Simulate API call to get bus details
+    // Simulate API call to get bus details with real data
     setTimeout(() => {
       const mockBuses = generateBusSchedules('Mumbai', 'Pune', '2024-01-15');
       const selectedBus = mockBuses.find(b => b.id === busId) || mockBuses[0];
+      const routeDistance = getDistance('Mumbai', 'Pune') || 149;
+
       setBus(selectedBus);
+      setDistance(routeDistance);
       setCurrentLocation(selectedBus.currentLocation);
       setLoading(false);
     }, 1000);
@@ -106,102 +111,20 @@ const BusTracking = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Map Section */}
+          {/* Enhanced Map Section */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl shadow-sm overflow-hidden"
             >
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Live Location</h2>
-              </div>
-              
-              {/* Mock Map */}
-              <div className="relative h-96 bg-gradient-to-br from-blue-100 to-green-100">
-                {/* Route Path */}
-                <svg className="absolute inset-0 w-full h-full">
-                  <path
-                    d="M 50 350 Q 200 200 350 150 Q 500 100 650 50"
-                    stroke="#3B82F6"
-                    strokeWidth="4"
-                    strokeDasharray="10,5"
-                    fill="none"
-                    className="animate-pulse"
-                  />
-                </svg>
-                
-                {/* Start Point */}
-                <div className="absolute bottom-8 left-12 flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
-                  <div className="ml-2 bg-white px-2 py-1 rounded shadow text-xs font-medium">
-                    Mumbai
-                  </div>
-                </div>
-                
-                {/* End Point */}
-                <div className="absolute top-12 right-12 flex items-center">
-                  <div className="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"></div>
-                  <div className="ml-2 bg-white px-2 py-1 rounded shadow text-xs font-medium">
-                    Pune
-                  </div>
-                </div>
-                
-                {/* Current Bus Location */}
-                <motion.div
-                  animate={{
-                    x: [200, 220, 200],
-                    y: [200, 180, 200]
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="absolute"
-                  style={{ left: '40%', top: '50%' }}
-                >
-                  <div className="relative">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                      <span className="text-white text-xs">🚌</span>
-                    </div>
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
-                      {bus.busNumber}
-                    </div>
-                  </div>
-                </motion.div>
-                
-                {/* Route Stops */}
-                <div className="absolute" style={{ left: '25%', top: '70%' }}>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-white shadow"></div>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-1 py-0.5 rounded text-xs">
-                    Stop 1
-                  </div>
-                </div>
-                
-                <div className="absolute" style={{ left: '60%', top: '30%' }}>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-white shadow"></div>
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-1 py-0.5 rounded text-xs">
-                    Stop 2
-                  </div>
-                </div>
-              </div>
-              
-              {/* Map Controls */}
-              <div className="p-4 bg-gray-50 border-t">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <SignalIcon className="w-4 h-4 mr-1" />
-                    GPS Signal: Strong
-                  </div>
-                  <div>
-                    Speed: 65 km/h
-                  </div>
-                  <div>
-                    Distance Covered: 45 km
-                  </div>
-                </div>
-              </div>
+              <EnhancedMap
+                fromCity="Mumbai"
+                toCity="Pune"
+                currentLocation={currentLocation}
+                busNumber={bus.busNumber}
+                distance={distance}
+                onLocationUpdate={setCurrentLocation}
+              />
             </motion.div>
           </div>
 
