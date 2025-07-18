@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   MapPinIcon,
   ClockIcon,
   PhoneIcon,
   ArrowLeftIcon,
-  SignalIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { generateBusSchedules, getDistance } from '../data/mockData';

@@ -1,6 +1,22 @@
-# 🚌 Interactive Bus Booking Demo
+# 🚌 Full-Stack Bus Booking Application
 
-A beautiful, interactive bus booking application demo with stunning UI, smooth animations, and realistic mock data. Perfect for showcasing modern web development skills and user experience design.
+A complete, production-ready bus booking application with React frontend and Node.js backend, featuring real-world calculations, interactive maps, user authentication, booking history with SQLite database, and real-time features. Perfect for showcasing full-stack development skills and modern web application architecture.
+
+## 🏗️ Architecture
+
+### Frontend (React)
+- **Modern React 18** with hooks and functional components
+- **Responsive design** with Tailwind CSS
+- **Smooth animations** with Framer Motion
+- **Interactive maps** with real-time tracking
+- **Real-world calculations** for pricing and travel times
+
+### Backend (Node.js/Express)
+- **RESTful API** with Express.js
+- **SQLite database** with comprehensive schema
+- **JWT authentication** with secure token management
+- **Real-time features** with Socket.IO
+- **Input validation** and error handling
 
 ## ✨ Features
 
@@ -28,6 +44,15 @@ A beautiful, interactive bus booking application demo with stunning UI, smooth a
 - **Loading States** - Smooth loading animations throughout
 - **Error Handling** - User-friendly error messages
 
+### 🔐 **Backend & Database Features**
+- **User Authentication**: JWT-based login/register system with secure password hashing
+- **Booking History**: Complete booking management with SQLite database persistence
+- **Real-time Features**: Socket.IO for live seat availability and bus tracking updates
+- **Data Persistence**: All bookings saved with passenger details and payment information
+- **RESTful API**: Comprehensive endpoints for authentication and booking operations
+- **Security**: Input validation, rate limiting, CORS configuration, and error handling
+- **Real-world Data**: Actual Indian cities, distances, and bus operator information
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -36,23 +61,48 @@ A beautiful, interactive bus booking application demo with stunning UI, smooth a
 
 ### Installation
 
+#### Frontend Setup
 1. **Clone or download the project**
 ```bash
 cd bus-booking-demo
 ```
 
-2. **Install dependencies**
+2. **Install frontend dependencies**
 ```bash
 npm install
 ```
 
-3. **Start the development server**
+3. **Start the frontend development server**
 ```bash
 npm start
 ```
 
-4. **Open your browser**
-- Visit: http://localhost:3000
+#### Backend Setup (Optional - for full features)
+4. **Navigate to backend directory**
+```bash
+cd backend
+```
+
+5. **Install backend dependencies**
+```bash
+npm install
+```
+
+6. **Initialize and seed the database**
+```bash
+npm run init-db
+npm run seed
+```
+
+7. **Start the backend server**
+```bash
+npm run dev
+```
+
+#### Access the Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/health
 - The app will automatically reload when you make changes
 
 ## 🎯 Demo Flow

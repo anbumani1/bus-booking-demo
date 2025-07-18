@@ -73,6 +73,9 @@ const SearchResults = () => {
           case 'night':
             if (hour >= 6 && hour < 18) return false;
             break;
+          default:
+            // Handle unexpected departure time filter
+            break;
         }
       }
       

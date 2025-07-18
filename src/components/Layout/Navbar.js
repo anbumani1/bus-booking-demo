@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Bars3Icon, 
+import {
+  Bars3Icon,
   XMarkIcon,
   HomeIcon,
   MagnifyingGlassIcon,
   MapPinIcon,
+  ClockIcon,
   UserIcon
 } from '@heroicons/react/24/outline';
 
@@ -17,6 +18,7 @@ const Navbar = () => {
   const navigation = [
     { name: 'Home', href: '/', icon: HomeIcon },
     { name: 'Search', href: '/search', icon: MagnifyingGlassIcon },
+    { name: 'My Bookings', href: '/booking-history', icon: ClockIcon },
     { name: 'Track Bus', href: '/track-bus/demo', icon: MapPinIcon },
   ];
 

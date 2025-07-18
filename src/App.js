@@ -13,6 +13,7 @@ import SearchResults from './pages/SearchResults';
 import SeatSelection from './pages/SeatSelection';
 import BookingConfirmation from './pages/BookingConfirmation';
 import BusTracking from './pages/BusTracking';
+import BookingHistory from './pages/BookingHistory';
 
 // Styles
 import './index.css';
@@ -31,6 +32,7 @@ function App() {
               <Route path="/seat-selection/:busId" element={<SeatSelection />} />
               <Route path="/booking-confirmation" element={<BookingConfirmation />} />
               <Route path="/track-bus/:busId" element={<BusTracking />} />
+          <Route path="/booking-history" element={<BookingHistory />} />
             </Routes>
           </main>
         </AnimatePresence>
