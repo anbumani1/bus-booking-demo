@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build": "echo 'No build step required'",
     "init-db": "node scripts/initDatabase.js",
     "seed": "node scripts/seedData.js",
     "test": "jest"
