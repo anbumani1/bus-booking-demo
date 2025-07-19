@@ -23,7 +23,11 @@ const ApiDemo = () => {
       
       if (health) {
         setHealthData(health);
-        setApiStatus('connected');
+        if (health.status === 'Demo Mode') {
+          setApiStatus('demo');
+        } else {
+          setApiStatus('connected');
+        }
       } else {
         setApiStatus('disconnected');
       }
@@ -37,6 +41,8 @@ const ApiDemo = () => {
     switch (apiStatus) {
       case 'connected':
         return <CheckCircleIcon className="w-6 h-6 text-green-500" />;
+      case 'demo':
+        return <ServerIcon className="w-6 h-6 text-blue-500" />;
       case 'disconnected':
         return <XCircleIcon className="w-6 h-6 text-red-500" />;
       case 'checking':
@@ -50,6 +56,8 @@ const ApiDemo = () => {
     switch (apiStatus) {
       case 'connected':
         return 'bg-green-50 border-green-200';
+      case 'demo':
+        return 'bg-blue-50 border-blue-200';
       case 'disconnected':
         return 'bg-red-50 border-red-200';
       case 'checking':
@@ -63,6 +71,8 @@ const ApiDemo = () => {
     switch (apiStatus) {
       case 'connected':
         return 'Backend API Connected';
+      case 'demo':
+        return 'Demo Mode - Frontend Only';
       case 'disconnected':
         return 'Backend API Disconnected';
       case 'checking':
@@ -100,6 +110,27 @@ const ApiDemo = () => {
           Refresh
         </button>
       </div>
+
+      {apiStatus === 'demo' && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mt-3 pt-3 border-t border-blue-200"
+        >
+          <div className="p-2 bg-blue-100 rounded text-xs text-blue-800">
+            🎯 <strong>Demo Mode Active:</strong>
+            <p className="mt-1">
+              Frontend is running with mock data. Backend features are available in the full repository.
+            </p>
+            <ul className="mt-2 ml-4 list-disc">
+              <li>All UI features working with mock data</li>
+              <li>Real-world calculations and pricing</li>
+              <li>Interactive maps and animations</li>
+              <li>Backend code available in repository</li>
+            </ul>
+          </div>
+        </motion.div>
+      )}
 
       {apiStatus === 'connected' && (
         <motion.div

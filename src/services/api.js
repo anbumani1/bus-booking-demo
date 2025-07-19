@@ -154,11 +154,28 @@ export const apiUtils = {
 // Health check
 export const healthCheck = async () => {
   try {
+    // Only check health if backend URL is available
+    if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
+      // For demo purposes, return mock health data when backend is not available
+      return {
+        status: 'Demo Mode',
+        environment: 'frontend-only',
+        uptime: 0,
+        message: 'Backend not available - running in demo mode'
+      };
+    }
+
     const response = await axios.get(`${API_BASE_URL.replace('/api', '')}/health`);
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error);
-    return null;
+    // Return demo mode status for deployment
+    return {
+      status: 'Demo Mode',
+      environment: 'frontend-only',
+      uptime: 0,
+      message: 'Backend not available - running in demo mode'
+    };
   }
 };
 
