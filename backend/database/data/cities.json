@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "name": "Mumbai",
+    "state": "Maharashtra",
+    "latitude": 19.076,
+    "longitude": 72.8777,
+    "population": 12442373,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.519Z"
+  },
+  {
+    "id": 2,
+    "name": "Delhi",
+    "state": "Delhi",
+    "latitude": 28.6139,
+    "longitude": 77.209,
+    "population": 16787941,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.537Z"
+  },
+  {
+    "id": 3,
+    "name": "Bangalore",
+    "state": "Karnataka",
+    "latitude": 12.9716,
+    "longitude": 77.5946,
+    "population": 8443675,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.537Z"
+  },
+  {
+    "id": 4,
+    "name": "Chennai",
+    "state": "Tamil Nadu",
+    "latitude": 13.0827,
+    "longitude": 80.2707,
+    "population": 4646732,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  },
+  {
+    "id": 5,
+    "name": "Pune",
+    "state": "Maharashtra",
+    "latitude": 18.5204,
+    "longitude": 73.8567,
+    "population": 3124458,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  },
+  {
+    "id": 6,
+    "name": "Hyderabad",
+    "state": "Telangana",
+    "latitude": 17.385,
+    "longitude": 78.4867,
+    "population": 6809970,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  },
+  {
+    "id": 7,
+    "name": "Kolkata",
+    "state": "West Bengal",
+    "latitude": 22.5726,
+    "longitude": 88.3639,
+    "population": 4496694,
+    "is_popular": false,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  },
+  {
+    "id": 8,
+    "name": "Ahmedabad",
+    "state": "Gujarat",
+    "latitude": 23.0225,
+    "longitude": 72.5714,
+    "population": 5570585,
+    "is_popular": false,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  },
+  {
+    "id": 9,
+    "name": "Jaipur",
+    "state": "Rajasthan",
+    "latitude": 26.9124,
+    "longitude": 75.7873,
+    "population": 3046163,
+    "is_popular": false,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  },
+  {
+    "id": 10,
+    "name": "Goa",
+    "state": "Goa",
+    "latitude": 15.2993,
+    "longitude": 74.124,
+    "population": 1457723,
+    "is_popular": true,
+    "created_at": "2025-07-19T07:42:13.538Z"
+  }
+]

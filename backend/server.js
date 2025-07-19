@@ -11,13 +11,14 @@ require('dotenv').config();
 // Import routes
 const authRoutes = require('./routes/auth');
 const bookingRoutes = require('./routes/bookings');
+const testRoutes = require('./routes/test');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorHandler');
 const { authenticateToken } = require('./middleware/auth');
 
 // Import database
-const { initializeDatabase } = require('./database/init');
+const { initializeDatabase } = require('./database/jsonDB');
 
 const app = express();
 const server = createServer(app);
@@ -68,6 +69,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/test', testRoutes);
 
 // Socket.IO for real-time features
 io.on('connection', (socket) => {
@@ -113,15 +115,21 @@ app.use('*', (req, res) => {
 // Initialize database and start server
 const startServer = async () => {
   try {
-    await initializeDatabase();
-    console.log('✅ Database initialized successfully');
+    console.log('🚀 Starting server with JSON database...');
 
+    // Initialize JSON database
+    await initializeDatabase();
+
+    // Start server
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
       console.log(`🔌 Socket.IO enabled for real-time features`);
+      console.log(`🗄️ Database: JSON files (persistent)`);
+      console.log(`📁 Data stored in: backend/database/data/`);
     });
+
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
