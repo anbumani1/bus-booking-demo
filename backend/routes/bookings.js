@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
-const { jsonDBHelpers } = require('../database/jsonDB');
+const { postgresHelpers } = require('../database/postgres');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -39,59 +39,73 @@ router.post('/', authenticateToken, [
     } = req.body;
     const userId = req.user.userId;
 
-    // Get city data
-    const fromCityData = await jsonDBHelpers.getCityByName(fromCity);
-    const toCityData = await jsonDBHelpers.getCityByName(toCity);
+    // Get city data from PostgreSQL
+    const fromCityResult = await postgresHelpers.query(
+      'SELECT id, name FROM cities WHERE LOWER(name) = LOWER($1)',
+      [fromCity]
+    );
+    const toCityResult = await postgresHelpers.query(
+      'SELECT id, name FROM cities WHERE LOWER(name) = LOWER($1)',
+      [toCity]
+    );
 
-    if (!fromCityData || !toCityData) {
+    if (fromCityResult.rows.length === 0 || toCityResult.rows.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Invalid city names'
       });
     }
 
-    // Get operator data
-    const operatorData = await jsonDBHelpers.getOperatorByName(operatorName);
-    if (!operatorData) {
+    const fromCityData = fromCityResult.rows[0];
+    const toCityData = toCityResult.rows[0];
+
+    // Get operator data from PostgreSQL
+    const operatorResult = await postgresHelpers.query(
+      'SELECT id, name FROM bus_operators WHERE LOWER(name) = LOWER($1)',
+      [operatorName]
+    );
+
+    if (operatorResult.rows.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Invalid operator name'
       });
     }
 
-    // Create booking
-    const bookingData = {
-      user_id: userId,
-      from_city_id: fromCityData.id,
-      to_city_id: toCityData.id,
-      operator_id: operatorData.id,
-      bus_number: busNumber,
-      bus_type: busType,
-      departure_date: departureDate,
-      departure_time: departureTime,
-      arrival_time: arrivalTime,
-      passenger_count: passengerCount,
-      seat_numbers: seatNumbers,
-      total_amount: totalAmount,
-      payment_method: paymentMethod || 'online',
-      booking_status: 'confirmed',
-      payment_status: 'paid'
-    };
+    const operatorData = operatorResult.rows[0];
 
-    const booking = await jsonDBHelpers.createBooking(bookingData);
+    // Create booking in PostgreSQL
+    const bookingResult = await postgresHelpers.query(`
+      INSERT INTO bookings (
+        user_id, from_city_id, to_city_id, operator_id, bus_number, bus_type,
+        departure_date, departure_time, arrival_time, passenger_count,
+        seat_numbers, total_amount, payment_method, booking_status, payment_status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      RETURNING *
+    `, [
+      userId, fromCityData.id, toCityData.id, operatorData.id, busNumber, busType,
+      departureDate, departureTime, arrivalTime, passengerCount,
+      JSON.stringify(seatNumbers), totalAmount, paymentMethod || 'online', 'confirmed', 'paid'
+    ]);
 
-    // Insert passengers
-    const passengerData = passengers.map((passenger, index) => ({
-      booking_id: booking.id,
-      name: passenger.name,
-      age: passenger.age,
-      gender: passenger.gender,
-      seat_number: seatNumbers[index],
-      id_type: passenger.idType,
-      id_number: passenger.idNumber
-    }));
+    const booking = bookingResult.rows[0];
 
-    await jsonDBHelpers.createPassengers(passengerData);
+    // Insert passengers into PostgreSQL
+    for (let i = 0; i < passengers.length; i++) {
+      const passenger = passengers[i];
+      await postgresHelpers.query(`
+        INSERT INTO passengers (booking_id, name, age, gender, seat_number, id_type, id_number)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `, [
+        booking.id,
+        passenger.name,
+        passenger.age,
+        passenger.gender,
+        seatNumbers[i],
+        passenger.idType,
+        passenger.idNumber
+      ]);
+    }
 
     // Emit real-time update
     const io = req.app.get('io');
@@ -141,45 +155,98 @@ router.get('/history', authenticateToken, async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status; // 'all', 'upcoming', 'completed', 'cancelled'
 
-    // Get user bookings with filters
-    const allBookings = await jsonDBHelpers.getUserBookings(userId, { status });
+    // Build query with filters
+    let whereClause = 'WHERE b.user_id = $1';
+    let queryParams = [userId];
+    let paramCount = 1;
 
-    // Apply pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const bookings = allBookings.slice(startIndex, endIndex);
-    const totalCount = allBookings.length;
+    if (status && status !== 'all') {
+      const today = new Date().toISOString().split('T')[0];
+      switch (status) {
+        case 'upcoming':
+          whereClause += ` AND b.departure_date >= $${++paramCount} AND b.booking_status = $${++paramCount}`;
+          queryParams.push(today, 'confirmed');
+          break;
+        case 'completed':
+          whereClause += ` AND b.departure_date < $${++paramCount} AND b.booking_status = $${++paramCount}`;
+          queryParams.push(today, 'confirmed');
+          break;
+        case 'cancelled':
+          whereClause += ` AND b.booking_status = $${++paramCount}`;
+          queryParams.push('cancelled');
+          break;
+      }
+    }
+
+    // Get total count for pagination
+    const countResult = await postgresHelpers.query(`
+      SELECT COUNT(*) FROM bookings b ${whereClause}
+    `, queryParams);
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    // Get bookings with pagination
+    const bookingsResult = await postgresHelpers.query(`
+      SELECT
+        b.*,
+        fc.name as from_city_name, fc.state as from_city_state,
+        tc.name as to_city_name, tc.state as to_city_state,
+        bo.name as operator_name, bo.logo as operator_logo, bo.rating as operator_rating
+      FROM bookings b
+      LEFT JOIN cities fc ON b.from_city_id = fc.id
+      LEFT JOIN cities tc ON b.to_city_id = tc.id
+      LEFT JOIN bus_operators bo ON b.operator_id = bo.id
+      ${whereClause}
+      ORDER BY b.created_at DESC
+      LIMIT $${++paramCount} OFFSET $${++paramCount}
+    `, [...queryParams, limit, (page - 1) * limit]);
+
+    const bookings = bookingsResult.rows;
+
+    // Get passengers for each booking
+    const bookingIds = bookings.map(b => b.id);
+    let passengersData = [];
+
+    if (bookingIds.length > 0) {
+      const passengersResult = await postgresHelpers.query(`
+        SELECT * FROM passengers WHERE booking_id = ANY($1)
+      `, [bookingIds]);
+      passengersData = passengersResult.rows;
+    }
 
     // Format bookings for response
-    const formattedBookings = bookings.map(booking => ({
-      id: booking.id,
-      uuid: booking.id,
-      bookingDate: booking.created_at,
-      journey: {
-        from: booking.from_city?.name || 'Unknown',
-        to: booking.to_city?.name || 'Unknown',
-        date: booking.departure_date,
-        departureTime: booking.departure_time,
-        arrivalTime: booking.arrival_time,
-        distance: booking.distance_km || 0
-      },
-      bus: {
-        number: booking.bus_number,
-        operator: booking.operator?.name || 'Unknown',
-        type: booking.bus_type
-      },
-      passengers: {
-        count: booking.passenger_count,
-        details: booking.passengers?.map(p => `${p.name} (${p.seat_number})`).join(', ') || '',
-        seats: booking.seat_numbers || []
-      },
-      payment: {
-        amount: booking.total_amount,
-        method: booking.payment_method,
-        status: booking.payment_status
-      },
-      status: booking.booking_status
-    }));
+    const formattedBookings = bookings.map(booking => {
+      const bookingPassengers = passengersData.filter(p => p.booking_id === booking.id);
+
+      return {
+        id: booking.id,
+        uuid: booking.id,
+        bookingDate: booking.created_at,
+        journey: {
+          from: booking.from_city_name || 'Unknown',
+          to: booking.to_city_name || 'Unknown',
+          date: booking.departure_date,
+          departureTime: booking.departure_time,
+          arrivalTime: booking.arrival_time,
+          distance: booking.distance_km || 0
+        },
+        bus: {
+          number: booking.bus_number,
+          operator: booking.operator_name || 'Unknown',
+          type: booking.bus_type
+        },
+        passengers: {
+          count: booking.passenger_count,
+          details: bookingPassengers.map(p => `${p.name} (${p.seat_number})`).join(', '),
+          seats: JSON.parse(booking.seat_numbers || '[]')
+        },
+        payment: {
+          amount: parseFloat(booking.total_amount),
+          method: booking.payment_method,
+          status: booking.payment_status
+        },
+        status: booking.booking_status
+      };
+    });
 
     res.json({
       success: true,

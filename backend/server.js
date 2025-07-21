@@ -18,6 +18,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const { authenticateToken } = require('./middleware/auth');
 
 // Import database
+const { testConnection, initializePostgresTables } = require('./database/postgres');
 const { initializeDatabase } = require('./database/jsonDB');
 
 const app = express();
@@ -130,10 +131,24 @@ app.use('*', (req, res) => {
 // Initialize database and start server
 const startServer = async () => {
   try {
-    console.log('🚀 Starting server with JSON database...');
+    console.log('🚀 Starting server...');
 
-    // Initialize JSON database
-    await initializeDatabase();
+    // Try PostgreSQL first, fallback to JSON
+    if (process.env.DATABASE_URL) {
+      console.log('🗄️ Connecting to PostgreSQL database...');
+      const connected = await testConnection();
+
+      if (connected) {
+        await initializePostgresTables();
+        console.log('✅ PostgreSQL database ready');
+      } else {
+        console.log('⚠️ PostgreSQL connection failed, falling back to JSON database');
+        await initializeDatabase();
+      }
+    } else {
+      console.log('🗄️ Using JSON database (no DATABASE_URL provided)');
+      await initializeDatabase();
+    }
 
     // Start server
     server.listen(PORT, () => {
@@ -141,8 +156,10 @@ const startServer = async () => {
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
       console.log(`🔌 Socket.IO enabled for real-time features`);
-      console.log(`🗄️ Database: JSON files (persistent)`);
-      console.log(`📁 Data stored in: backend/database/data/`);
+      console.log(`🗄️ Database: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'JSON files'}`);
+      if (!process.env.DATABASE_URL) {
+        console.log(`📁 Data stored in: backend/database/data/`);
+      }
     });
 
   } catch (error) {

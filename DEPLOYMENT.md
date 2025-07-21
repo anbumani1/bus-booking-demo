@@ -13,11 +13,13 @@ Deploy your backend to get a real server URL for storing booking tickets permane
    - Root Directory: `backend`
    - Build Command: `npm install`
    - Start Command: `npm start`
-5. **Environment Variables**:
+5. **Add PostgreSQL Database**: Click "New" → "Database" → "Add PostgreSQL"
+6. **Environment Variables** (automatically set by Render):
    ```
    NODE_ENV=production
    JWT_SECRET=your-super-secret-key-here
    FRONTEND_URL=https://your-frontend-domain.vercel.app
+   DATABASE_URL=postgresql://... (automatically provided by Render)
    ```
 6. **Deploy**: Railway will automatically deploy and give you a URL
 
