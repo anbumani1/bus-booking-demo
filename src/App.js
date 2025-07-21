@@ -1,12 +1,13 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
+import { setupDemoEnvironment } from './utils/demoData';
 
 // Components
 import Navbar from './components/Layout/Navbar';
 import Footer from './components/Layout/Footer';
-import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -21,36 +22,33 @@ import LoginLanding from './pages/LoginLanding';
 import './index.css';
 
 function App() {
+  // Initialize demo data on app load
+  useEffect(() => {
+    setupDemoEnvironment();
+  }, []);
+
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<LoginLanding />} />
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
 
-        {/* Protected Routes */}
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-              <Navbar />
+        <AnimatePresence mode="wait">
+          <main className="flex-grow">
+            <Routes>
+              {/* All routes are now public */}
+              <Route path="/" element={<Home />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/seat-selection/:busId" element={<SeatSelection />} />
+              <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+              <Route path="/track-bus/:busId" element={<BusTracking />} />
+              <Route path="/booking-history" element={<BookingHistory />} />
+              <Route path="/login" element={<LoginLanding />} />
+            </Routes>
+          </main>
+        </AnimatePresence>
 
-              <AnimatePresence mode="wait">
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/search" element={<SearchResults />} />
-                    <Route path="/seat-selection/:busId" element={<SeatSelection />} />
-                    <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-                    <Route path="/track-bus/:busId" element={<BusTracking />} />
-                    <Route path="/booking-history" element={<BookingHistory />} />
-                  </Routes>
-                </main>
-              </AnimatePresence>
-
-              <Footer />
-            </div>
-          </ProtectedRoute>
-        } />
-      </Routes>
+        <Footer />
+      </div>
       
       {/* Toast notifications with beautiful styling */}
       <Toaster

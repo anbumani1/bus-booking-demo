@@ -14,7 +14,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { bookingAPI } from '../services/api';
 
 const BookingHistory = () => {
   const navigate = useNavigate();
@@ -36,32 +35,68 @@ const BookingHistory = () => {
   const fetchBookingHistory = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
 
-      if (!token) {
-        toast.error('Please login to view booking history');
-        navigate('/login');
-        return;
+      // Get demo booking history from localStorage
+      const demoBookings = JSON.parse(localStorage.getItem('demoBookingHistory') || '[]');
+
+      // Convert demo bookings to expected format
+      const formattedBookings = demoBookings.map(booking => ({
+        id: booking.bookingId,
+        uuid: booking.bookingId,
+        bookingDate: booking.bookingDate || new Date().toISOString(),
+        journey: {
+          from: booking.bus?.route?.from || 'Mumbai',
+          to: booking.bus?.route?.to || 'Pune',
+          date: booking.bus?.departureDate || new Date().toISOString().split('T')[0],
+          departureTime: booking.bus?.departureTime || '14:30',
+          arrivalTime: booking.bus?.arrivalTime || '17:45',
+          distance: booking.bus?.route?.distance || 149
+        },
+        bus: {
+          number: booking.bus?.busNumber || 'MH12AB1234',
+          operator: booking.bus?.operator || 'VRL Travels',
+          type: booking.bus?.type || 'AC Sleeper'
+        },
+        passengers: {
+          count: booking.selectedSeats?.length || 1,
+          details: booking.passengers?.map(p => `${p.name} (${p.seatNumber})`).join(', ') || 'Demo Passenger',
+          seats: booking.selectedSeats || ['A1']
+        },
+        payment: {
+          amount: booking.totalAmount || 1200,
+          method: 'Demo Payment',
+          status: 'paid'
+        },
+        status: booking.status || 'confirmed'
+      }));
+
+      // Apply filter
+      let filteredBookings = formattedBookings;
+      if (filter !== 'all') {
+        filteredBookings = formattedBookings.filter(booking => {
+          const journeyDate = new Date(booking.journey.date);
+          const today = new Date();
+
+          switch (filter) {
+            case 'upcoming':
+              return journeyDate >= today && booking.status === 'confirmed';
+            case 'completed':
+              return journeyDate < today && booking.status === 'confirmed';
+            case 'cancelled':
+              return booking.status === 'cancelled';
+            default:
+              return true;
+          }
+        });
       }
 
-      // Fetch real booking data from API
-      const response = await bookingAPI.getBookingHistory(token, {
-        status: filter,
-        page: pagination.page,
-        limit: pagination.limit
-      });
+      setBookings(filteredBookings);
+      setPagination(prev => ({
+        ...prev,
+        total: filteredBookings.length,
+        totalPages: Math.ceil(filteredBookings.length / prev.limit)
+      }));
 
-      if (response.success) {
-        setBookings(response.data.bookings);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.pagination.total,
-          totalPages: response.data.pagination.totalPages
-        }));
-      } else {
-        toast.error('Failed to fetch booking history');
-        setBookings([]);
-      }
     } catch (error) {
       console.error('Error fetching booking history:', error);
       toast.error('Failed to load booking history');
