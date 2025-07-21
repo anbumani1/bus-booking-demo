@@ -18,8 +18,10 @@ const { errorHandler } = require('./middleware/errorHandler');
 const { authenticateToken } = require('./middleware/auth');
 
 // Import database
-const { testConnection, initializePostgresTables } = require('./database/postgres');
-const { initializeDatabase } = require('./database/jsonDB');
+const { initializeDatabase } = require('./database/init');
+
+const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const app = express();
 const server = createServer(app);
@@ -36,8 +38,7 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+
 
 // Security middleware
 app.use(helmet());
@@ -131,24 +132,11 @@ app.use('*', (req, res) => {
 // Initialize database and start server
 const startServer = async () => {
   try {
-    console.log('🚀 Starting server...');
+    console.log('🚀 Starting server with SQLite database...');
 
-    // Try PostgreSQL first, fallback to JSON
-    if (process.env.DATABASE_URL) {
-      console.log('🗄️ Connecting to PostgreSQL database...');
-      const connected = await testConnection();
-
-      if (connected) {
-        await initializePostgresTables();
-        console.log('✅ PostgreSQL database ready');
-      } else {
-        console.log('⚠️ PostgreSQL connection failed, falling back to JSON database');
-        await initializeDatabase();
-      }
-    } else {
-      console.log('🗄️ Using JSON database (no DATABASE_URL provided)');
-      await initializeDatabase();
-    }
+    // Initialize SQLite database
+    await initializeDatabase();
+    console.log('✅ SQLite database initialized successfully');
 
     // Start server
     server.listen(PORT, () => {
@@ -156,10 +144,8 @@ const startServer = async () => {
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
       console.log(`🔌 Socket.IO enabled for real-time features`);
-      console.log(`🗄️ Database: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'JSON files'}`);
-      if (!process.env.DATABASE_URL) {
-        console.log(`📁 Data stored in: backend/database/data/`);
-      }
+      console.log(`🗄️ Database: SQLite (persistent)`);
+      console.log(`📁 Database file: backend/database/bus_booking.db`);
     });
 
   } catch (error) {

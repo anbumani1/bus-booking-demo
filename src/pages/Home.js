@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MapPinIcon, 
-  CalendarDaysIcon, 
+import {
+  MapPinIcon,
+  CalendarDaysIcon,
   MagnifyingGlassIcon,
   ArrowsRightLeftIcon,
   SparklesIcon,
   ShieldCheckIcon,
   ClockIcon,
   CurrencyRupeeIcon,
-  StarIcon
+  StarIcon,
+  BookmarkIcon
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -266,15 +267,26 @@ const Home = () => {
                     </div>
 
                     {/* Search Button */}
-                    <div className="flex items-end">
+                    <div className="flex items-end space-x-3">
                       <motion.button
                         type="submit"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl"
                       >
                         <MagnifyingGlassIcon className="w-5 h-5" />
                         <span>Search Buses</span>
+                      </motion.button>
+
+                      <motion.button
+                        type="button"
+                        onClick={() => navigate('/booking-history')}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+                      >
+                        <BookmarkIcon className="w-5 h-5" />
+                        <span>My Bookings</span>
                       </motion.button>
                     </div>
                   </div>
@@ -402,6 +414,19 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Floating History Button for Mobile */}
+      <motion.button
+        onClick={() => navigate('/booking-history')}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="fixed bottom-6 right-6 md:hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-4 rounded-full shadow-2xl z-50 flex items-center justify-center"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1, duration: 0.3 }}
+      >
+        <BookmarkIcon className="w-6 h-6" />
+      </motion.button>
     </div>
   );
 };

@@ -3,8 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
-const { postgresHelpers } = require('../database/postgres');
-const { jsonDBHelpers } = require('../database/jsonDB');
+const { getDB } = require('../database/init');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -30,14 +29,15 @@ router.post('/register', [
 
     const { email, password, firstName, lastName, phone, dateOfBirth, gender } = req.body;
 
-    // Check if user already exists (try PostgreSQL first, fallback to JSON)
-    let existingUser;
-    if (process.env.DATABASE_URL) {
-      const result = await postgresHelpers.query('SELECT id FROM users WHERE email = $1', [email]);
-      existingUser = result.rows[0];
-    } else {
-      existingUser = await jsonDBHelpers.getUserByEmail(email);
-    }
+    const db = getDB();
+
+    // Check if user already exists
+    const existingUser = await new Promise((resolve, reject) => {
+      db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
 
     if (existingUser) {
       return res.status(400).json({
