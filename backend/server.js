@@ -19,6 +19,7 @@ const { authenticateToken } = require('./middleware/auth');
 
 // Import database
 const { initializeDatabase } = require('./database/init');
+const { createDemoUser } = require('./scripts/createDemoUser');
 
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -137,6 +138,9 @@ const startServer = async () => {
     // Initialize SQLite database
     await initializeDatabase();
     console.log('✅ SQLite database initialized successfully');
+
+    // Create demo user
+    await createDemoUser();
 
     // Start server
     server.listen(PORT, () => {

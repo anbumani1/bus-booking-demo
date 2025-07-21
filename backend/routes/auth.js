@@ -50,18 +50,31 @@ router.post('/register', [
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create new user
-    const userData = {
-      email,
-      password_hash: hashedPassword,
-      first_name: firstName,
-      last_name: lastName,
-      phone,
-      date_of_birth: dateOfBirth,
-      gender
-    };
+    // Create new user in SQLite
+    const userUuid = require('uuid').v4();
 
-    const newUser = await jsonDBHelpers.createUser(userData);
+    const newUser = await new Promise((resolve, reject) => {
+      const insertUser = `
+        INSERT INTO users (uuid, email, password_hash, first_name, last_name, phone, date_of_birth, gender)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      db.run(insertUser, [
+        userUuid, email, hashedPassword, firstName, lastName, phone, dateOfBirth, gender
+      ], function(err) {
+        if (err) reject(err);
+        else resolve({
+          id: this.lastID,
+          uuid: userUuid,
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          phone,
+          date_of_birth: dateOfBirth,
+          gender
+        });
+      });
+    });
 
     // Generate JWT token
     const token = jwt.sign(
@@ -113,9 +126,16 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Find user
-    const user = await jsonDBHelpers.getUserByEmail(email);
-    if (!user || user.is_active === false) {
+    // Find user in SQLite
+    const db = getDB();
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE email = ? AND is_active = 1', [email], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -213,9 +233,16 @@ router.get('/verify', async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Get user details
-    const user = await jsonDBHelpers.getUserById(decoded.userId);
-    if (!user || user.is_active === false) {
+    // Get user details from SQLite
+    const db = getDB();
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE id = ? AND is_active = 1', [decoded.userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid token'
