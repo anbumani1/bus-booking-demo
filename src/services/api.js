@@ -49,74 +49,9 @@ api.interceptors.response.use(
   }
 );
 
-// Authentication API
-export const authAPI = {
-  // Register new user
-  register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
-    if (response.data.success) {
-      localStorage.setItem('authToken', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
-    }
-    return response.data;
-  },
 
-  // Login user
-  login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    if (response.data.success) {
-      localStorage.setItem('authToken', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
-    }
-    return response.data;
-  },
 
-  // Logout user
-  logout: async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-    }
-  },
 
-  // Verify token
-  verifyToken: async () => {
-    const response = await api.get('/auth/verify');
-    return response.data;
-  },
-};
-
-// Booking API
-export const bookingAPI = {
-  // Create new booking
-  createBooking: async (bookingData) => {
-    const response = await api.post('/bookings', bookingData);
-    return response.data;
-  },
-
-  // Get booking history
-  getBookingHistory: async (params = {}) => {
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await api.get(`/bookings/history?${queryParams}`);
-    return response.data;
-  },
-
-  // Get booking details by UUID
-  getBookingDetails: async (uuid) => {
-    const response = await api.get(`/bookings/${uuid}`);
-    return response.data;
-  },
-
-  // Cancel booking
-  cancelBooking: async (uuid, reason) => {
-    const response = await api.patch(`/bookings/${uuid}/cancel`, { reason });
-    return response.data;
-  },
-};
 
 // Utility functions
 export const apiUtils = {
@@ -149,6 +84,74 @@ export const apiUtils = {
     }
     return error.message || 'An unexpected error occurred';
   },
+};
+
+// Authentication API
+export const authAPI = {
+  // User registration
+  register: async (userData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  },
+
+  // User login
+  login: async (credentials) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+      return response.data;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  },
+
+  // Verify token
+  verifyToken: async (token) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/auth/verify`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      throw error;
+    }
+  }
+};
+
+// Booking API
+export const bookingAPI = {
+  // Create new booking
+  createBooking: async (bookingData, token) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/bookings`, bookingData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Booking creation failed:', error);
+      throw error;
+    }
+  },
+
+  // Get booking history
+  getBookingHistory: async (token, filters = {}) => {
+    try {
+      const params = new URLSearchParams(filters);
+      const response = await axios.get(`${API_BASE_URL}/bookings/history?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch booking history:', error);
+      throw error;
+    }
+  }
 };
 
 // Health check
