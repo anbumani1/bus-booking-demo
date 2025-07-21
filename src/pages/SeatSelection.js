@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   UserIcon,
   HeartIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  CurrencyRupeeIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { bookingAPI } from '../services/api';
 import { generateBusSchedules, generateSeatLayout } from '../data/mockData';
 
 const SeatSelection = () => {
@@ -65,25 +67,71 @@ const SeatSelection = () => {
     return <UserIcon className="w-3 h-3" />;
   };
 
-  const handleProceedToBooking = () => {
+  const handleProceedToBooking = async () => {
     if (selectedSeats.length === 0) {
       toast.error('Please select at least one seat');
       return;
     }
 
-    const bookingData = {
-      bus,
-      selectedSeats,
-      totalAmount: selectedSeats.length * bus.price
-    };
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      toast.error('Please login to continue booking');
+      navigate('/login');
+      return;
+    }
 
-    // Store booking data in localStorage for demo
-    localStorage.setItem('bookingData', JSON.stringify(bookingData));
-    
-    toast.success('Proceeding to booking confirmation...');
-    setTimeout(() => {
-      navigate('/booking-confirmation');
-    }, 1000);
+    const loadingToast = toast.loading('Creating your booking...');
+
+    try {
+      // Prepare booking data for API
+      const bookingData = {
+        fromCity: bus.route.from,
+        toCity: bus.route.to,
+        busNumber: bus.busNumber,
+        busType: bus.type,
+        operatorName: bus.operator,
+        departureDate: bus.departureDate,
+        departureTime: bus.departureTime,
+        arrivalTime: bus.arrivalTime,
+        passengerCount: selectedSeats.length,
+        seatNumbers: selectedSeats,
+        totalAmount: selectedSeats.length * bus.price,
+        paymentMethod: 'online',
+        passengers: selectedSeats.map((seatNumber, index) => ({
+          name: `Passenger ${index + 1}`,
+          age: 25,
+          gender: 'male',
+          seatNumber: seatNumber,
+          idType: 'aadhar',
+          idNumber: '1234567890'
+        }))
+      };
+
+      // Create booking via API
+      const response = await bookingAPI.createBooking(bookingData, token);
+
+      if (response.success) {
+        toast.dismiss(loadingToast);
+        toast.success('Booking created successfully!');
+
+        // Store booking data for confirmation page
+        localStorage.setItem('bookingData', JSON.stringify({
+          ...bookingData,
+          bookingId: response.data.booking.id,
+          bookingNumber: `BUS${response.data.booking.id}`,
+          status: 'confirmed'
+        }));
+
+        navigate('/booking-confirmation');
+      } else {
+        toast.dismiss(loadingToast);
+        toast.error('Failed to create booking. Please try again.');
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Booking creation error:', error);
+      toast.error('Failed to create booking. Please try again.');
+    }
   };
 
   if (loading) {
